@@ -1,0 +1,54 @@
+Configure Logging in Spring With Log4J
+Configuring logging for Spring is easy as long as you keep in mind that anything related to classpath is a total mess.
+
+First, you want to obtain commons-logging and log4j libraries, if you haven't yet put them in server's lib folder or added to the web application.
+
+Second, create a /WEB-INF/log4j.xml file with the following content:
+
+view plainprint?
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">  
+  
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">  
+  
+  <appender name="console" class="org.apache.log4j.ConsoleAppender">  
+    <param name="Target" value="System.out"/>  
+    <layout class="org.apache.log4j.PatternLayout">  
+      <param name="ConversionPattern" value="%-4r [%t] %-5p %c %x - %m%n"/>  
+    </layout>  
+  </appender>  
+  
+  <root>  
+    <priority value ="error" />  
+    <appender-ref ref="console" />  
+  </root>  
+  
+  <category name="org.springframework" additivity="false">  
+    <priority value="debug" />  
+    <appender-ref ref="console" />  
+  </category>  
+  
+</log4j:configuration>  
+
+
+In short, this tells to throw whatever is of error level from all sources, and info- and debug-level messages from anything in org.springframework package in stdout.
+
+Then, add the following section to your web.xml:
+
+view plainprint?
+<context-param>  
+  <param-name>log4jConfigLocation</param-name>  
+  <param-value>/WEB-INF/log4j.xml</param-value>  
+</context-param>  
+<listener>  
+  <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>  
+</listener>  
+
+
+As pointed out here, logger Listener must be declared before ContextLoaderListener.
+
+Now, this seems to be enought, however, at this point many people (judging by the amount of complaints on Spring forums) face the problem of nothing of the described to work.
+
+This was also the case for me, and the problem was in commons-logging.jar, which was sitting in %CATALINA_HOME%/lib folder. Once I removed it out of there and added commons-logging library to my web application, the System.out was full of Spring's debug messages.
+Posted by sp at 20:19 
+Labels: commons-logging, debug, log4j, logging, spring
